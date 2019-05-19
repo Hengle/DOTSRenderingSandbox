@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 3801273739359481262}
   - component: {fileID: 7492968575171367255}
   - component: {fileID: 9205508497088914824}
-  - component: {fileID: 8330075151339321225}
   m_Layer: 0
   m_Name: Grass_NoLOD
   m_TagString: Untagged
@@ -91,18 +90,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af892e4287c1f436baf5a5063049521a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &8330075151339321225
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9205508497088914827}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f13f42112a552354988a63573e49f5d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  prefabPrototype: {fileID: 11400000, guid: 28a7124fc346b574c80e321a5fd7b104, type: 2}
-  gpuInstancerID: 0
-  state: 0
