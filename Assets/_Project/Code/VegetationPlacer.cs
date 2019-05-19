@@ -113,6 +113,7 @@ public class VegetationPlacer : MonoBehaviour
             MeshRenderer mr = grassesObject.AddComponent<MeshRenderer>();
             mf.sharedMesh = _finalMesh;
             mr.sharedMaterial = _grassMat;
+            mr.shadowCastingMode = VegetationPrefab.GetComponentInChildren<MeshRenderer>().shadowCastingMode;
 
             if (Application.isPlaying)
             {
