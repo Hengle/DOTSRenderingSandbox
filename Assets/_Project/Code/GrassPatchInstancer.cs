@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Unity.Entities;
+//using Unity.Entities;
 using UnityEngine;
 
 
@@ -18,17 +18,14 @@ public class GrassPatchInstancer : MonoBehaviour
     public int FinalSpawnCount = 0;
 
     [Header("Params")]
+    public GameObject Prefab;
     public Mode SpawnMode;
     public int InstanceResolutionPerPatch = 100;
     public int PatchResolution = 10;
     public float PatchSize = 10;
 
-    [Header("References")]
-    public GameObject Prefab;
-    public BoxCollider Bounds;
-    public Collider OnCollider;
-
     private Transform _transform;
+    private const float MaxSpawnHeight = 10000;
 
     private void OnValidate()
     {
@@ -42,15 +39,12 @@ public class GrassPatchInstancer : MonoBehaviour
 
     public void Spawn()
     {
-        EntityManager _entityManager = World.Active.EntityManager;
+        //EntityManager _entityManager = World.Active.EntityManager;
         Mesh _grassMesh = Prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
         Material _grassMat = Prefab.GetComponentInChildren<MeshRenderer>().sharedMaterial;
 
         _transform = this.transform;
-        float xHalfSize = Bounds.size.x * 0.5f;
-        float yHalfSize = Bounds.size.y * 0.5f;
-        float zHalfSize = Bounds.size.z * 0.5f;
-        Vector3 highBoundsCenter = _transform.position + Bounds.center + (_transform.rotation * Vector3.up * yHalfSize);
+        Vector3 highBoundsCenter = _transform.position + (_transform.rotation * Vector3.up * MaxSpawnHeight);
 
         float totalSize = PatchResolution * PatchSize;
         Vector3 bottomCorner = Vector3.one * (totalSize * -0.5f);
@@ -62,12 +56,12 @@ public class GrassPatchInstancer : MonoBehaviour
         {
             for (int patchY = 0; patchY < PatchResolution; patchY++)
             {
-                GeneratePatch(bottomCorner + new Vector3(patchX * PatchSize, 0f, patchY * PatchSize), highBoundsCenter, instanceSpacing, yHalfSize * 2f, _grassMesh, _grassMat, _entityManager);
+                GeneratePatch(bottomCorner + new Vector3(patchX * PatchSize, 0f, patchY * PatchSize), highBoundsCenter, instanceSpacing, MaxSpawnHeight * 2f, _grassMesh, _grassMat/*, _entityManager*/);
             }
         }
     }
 
-    public void GeneratePatch(Vector3 start, Vector3 highBoundsCenter, float spacing, float rayDist, Mesh grassMesh, Material grassMat, EntityManager entityManager)
+    public void GeneratePatch(Vector3 start, Vector3 highBoundsCenter, float spacing, float rayDist, Mesh grassMesh, Material grassMat/*, EntityManager entityManager*/)
     {
         Mesh _finalMesh = new Mesh();
         _finalMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
@@ -83,7 +77,7 @@ public class GrassPatchInstancer : MonoBehaviour
                 rayOrigin = highBoundsCenter + (_transform.rotation * rayOrigin);
 
                 Ray r = new Ray(rayOrigin, -_transform.up);
-                if (OnCollider.Raycast(r, out RaycastHit hit, rayDist))
+                if (Physics.Raycast(r, out RaycastHit hit, rayDist))
                 {
                     Vector3 upDir = hit.normal;
                     Quaternion randomRot = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 30f), Vector3.right);
@@ -102,6 +96,7 @@ public class GrassPatchInstancer : MonoBehaviour
 
         // Create the patch object
         _finalMesh.CombineMeshes(_combineInstances);
+        _finalMesh.RecalculateBounds();
         _finalMesh.Optimize();
         _finalMesh.OptimizeIndexBuffers();
         _finalMesh.OptimizeReorderVertexBuffer();
@@ -115,8 +110,12 @@ public class GrassPatchInstancer : MonoBehaviour
         // Convert to DOTS
         if (SpawnMode == Mode.DOTS)
         {
-            Entity _prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(patchObject, World.Active);
+            //Entity _prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(patchObject, World.Active);
             Destroy(patchObject);
+        }
+        else
+        {
+            //patchObject.isStatic = true;
         }
     }
 

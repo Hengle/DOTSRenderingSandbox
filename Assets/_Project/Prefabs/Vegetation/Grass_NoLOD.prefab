@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 5304062699905603480}
   - component: {fileID: 3801273739359481262}
   - component: {fileID: 7492968575171367255}
-  - component: {fileID: 9205508497088914824}
   m_Layer: 0
   m_Name: Grass_NoLOD
   m_TagString: Untagged
@@ -78,15 +77,3 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &9205508497088914824
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9205508497088914827}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af892e4287c1f436baf5a5063049521a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
