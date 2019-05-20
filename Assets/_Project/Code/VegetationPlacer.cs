@@ -5,6 +5,7 @@ using Unity.Entities;
 using Unity.Rendering;
 using Unity.Mathematics;
 using Unity.Transforms;
+using Unity.Entities.Streaming;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -36,9 +37,13 @@ public enum VegetationSpawnerMethod
 
 public class VegetationPlacer : MonoBehaviour
 {
+    [Header("Params")]
     public VegetationSpawnerMethod Method;
     public GameObject VegetationPrefab;
     public int Quantity = 1000;
+    public bool RemovePerInstanceCulling = false;
+
+    [Header("References")]
     public BoxCollider Bounds;
     public Collider OnCollider;
 
@@ -63,6 +68,10 @@ public class VegetationPlacer : MonoBehaviour
         {
             _prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(VegetationPrefab, World.Active);
             _entityManager = World.Active.EntityManager;
+            if (RemovePerInstanceCulling)
+            {
+                _entityManager.RemoveComponent<PerInstanceCullingTag>(_prefabEntity);
+            }
         }
         else if (Method == VegetationSpawnerMethod.MeshCombine)
         {
@@ -124,6 +133,10 @@ public class VegetationPlacer : MonoBehaviour
                 DestroyImmediate(_tmpTransform.gameObject);
             }
         }
+        else if (Method == VegetationSpawnerMethod.DOTS)
+        {
+            EntitySceneOptimization.Optimize(World.Active);
+        }
     }
 
     public void SpawnOne(int index, Vector3 pos, Quaternion rot)
@@ -133,6 +146,7 @@ public class VegetationPlacer : MonoBehaviour
             var instance = _entityManager.Instantiate(_prefabEntity);
             _entityManager.SetComponentData(instance, new Translation { Value = pos });
             _entityManager.SetComponentData(instance, new Rotation { Value = rot });
+            //_entityManager.AddComponentData<Static>(instance, new Static());
         }
         else if (Method == VegetationSpawnerMethod.MeshCombine)
         {
