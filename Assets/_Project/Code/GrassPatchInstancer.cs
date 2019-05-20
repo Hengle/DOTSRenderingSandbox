@@ -1,6 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-//using Unity.Entities;
+using Unity.Entities;
+using Unity.Entities.Streaming;
+using Unity.Rendering;
+using Unity.Scenes;
+using Unity.Transforms;
 using UnityEngine;
 
 
@@ -23,6 +27,7 @@ public class GrassPatchInstancer : MonoBehaviour
     public int InstanceResolutionPerPatch = 100;
     public int PatchResolution = 10;
     public float PatchSize = 10;
+    public SubScene GrassSubScene;
 
     private Transform _transform;
     private const float MaxSpawnHeight = 10000;
@@ -39,9 +44,16 @@ public class GrassPatchInstancer : MonoBehaviour
 
     public void Spawn()
     {
-        //EntityManager _entityManager = World.Active.EntityManager;
-        Mesh _grassMesh = Prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
-        Material _grassMat = Prefab.GetComponentInChildren<MeshRenderer>().sharedMaterial;
+        FrozenRenderSceneTag frozenTag = new FrozenRenderSceneTag()
+        {
+            SceneGUID = GrassSubScene.SceneGUID,
+            SectionIndex = 0,
+            HasStreamedLOD = 0,
+        };
+
+        EntityManager entityManager = World.Active.EntityManager;
+        Mesh grassMesh = Prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
+        Material grassMat = Prefab.GetComponentInChildren<MeshRenderer>().sharedMaterial;
 
         _transform = this.transform;
         Vector3 highBoundsCenter = _transform.position + (_transform.rotation * Vector3.up * MaxSpawnHeight);
@@ -56,15 +68,20 @@ public class GrassPatchInstancer : MonoBehaviour
         {
             for (int patchY = 0; patchY < PatchResolution; patchY++)
             {
-                GeneratePatch(bottomCorner + new Vector3(patchX * PatchSize, 0f, patchY * PatchSize), highBoundsCenter, instanceSpacing, MaxSpawnHeight * 2f, _grassMesh, _grassMat/*, _entityManager*/);
+                GeneratePatch(bottomCorner + new Vector3(patchX * PatchSize, 0f, patchY * PatchSize), highBoundsCenter, instanceSpacing, MaxSpawnHeight * 2f, grassMesh, grassMat, entityManager, frozenTag);
             }
+        }
+
+        if (SpawnMode == Mode.DOTS)
+        {
+            //EntitySceneOptimization.Optimize(World.Active);
         }
     }
 
-    public void GeneratePatch(Vector3 start, Vector3 highBoundsCenter, float spacing, float rayDist, Mesh grassMesh, Material grassMat/*, EntityManager entityManager*/)
+    public void GeneratePatch(Vector3 start, Vector3 highBoundsCenter, float spacing, float rayDist, Mesh grassMesh, Material grassMat, EntityManager entityManager, FrozenRenderSceneTag frozenTag)
     {
-        Mesh _finalMesh = new Mesh();
-        _finalMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        Mesh finalMesh = new Mesh();
+        finalMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         CombineInstance[] _combineInstances = new CombineInstance[InstanceResolutionPerPatch * InstanceResolutionPerPatch];
 
         // Spawn individual grasses
@@ -81,36 +98,40 @@ public class GrassPatchInstancer : MonoBehaviour
                 {
                     Vector3 upDir = hit.normal;
                     Quaternion randomRot = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 30f), Vector3.right);
-                    randomRot = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 360f), Vector3.up) * randomRot;
+                    randomRot = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 180), Vector3.up) * randomRot;
                     randomRot = Quaternion.FromToRotation(Vector3.up, upDir) * randomRot;
 
-                    SpawnInstance(counter, hit.point, randomRot, grassMesh, _combineInstances);
+                    SpawnInstance(counter, hit.point, randomRot, Prefab.transform.localScale, grassMesh, _combineInstances);
                     counter++;
                 }
                 else
                 {
-                    SpawnInstance(counter, rayOrigin + (-_transform.up * rayDist * 0.5f), Quaternion.identity, grassMesh, _combineInstances);
+                    SpawnInstance(counter, rayOrigin + (-_transform.up * rayDist * 0.5f), Quaternion.identity, Prefab.transform.localScale, grassMesh, _combineInstances);
+                    counter++;
                 }
             }
         }
 
         // Create the patch object
-        _finalMesh.CombineMeshes(_combineInstances);
-        _finalMesh.RecalculateBounds();
-        _finalMesh.Optimize();
-        _finalMesh.OptimizeIndexBuffers();
-        _finalMesh.OptimizeReorderVertexBuffer();
+        finalMesh.CombineMeshes(_combineInstances);
+        finalMesh.RecalculateBounds();
+        finalMesh.Optimize();
+        finalMesh.OptimizeIndexBuffers();
+        finalMesh.OptimizeReorderVertexBuffer();
         GameObject patchObject = new GameObject();
         MeshFilter mf = patchObject.AddComponent<MeshFilter>();
         MeshRenderer mr = patchObject.AddComponent<MeshRenderer>();
-        mf.sharedMesh = _finalMesh;
+        mf.sharedMesh = finalMesh;
         mr.sharedMaterial = grassMat;
         mr.shadowCastingMode = Prefab.GetComponentInChildren<MeshRenderer>().shadowCastingMode;
 
         // Convert to DOTS
         if (SpawnMode == Mode.DOTS)
         {
-            //Entity _prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(patchObject, World.Active);
+            Entity prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(patchObject, World.Active);
+            entityManager.AddComponentData<Static>(prefabEntity, new Static());
+            entityManager.AddSharedComponentData<FrozenRenderSceneTag>(prefabEntity, frozenTag);
+
             Destroy(patchObject);
         }
         else
@@ -119,10 +140,10 @@ public class GrassPatchInstancer : MonoBehaviour
         }
     }
 
-    public void SpawnInstance(int index, Vector3 pos, Quaternion rot, Mesh grassMesh, CombineInstance[] combineInstances)
+    public void SpawnInstance(int index, Vector3 pos, Quaternion rot, Vector3 scale, Mesh grassMesh, CombineInstance[] combineInstances)
     {
         combineInstances[index].subMeshIndex = 0;
         combineInstances[index].mesh = grassMesh;
-        combineInstances[index].transform = Matrix4x4.TRS(pos, rot, Vector3.one);
+        combineInstances[index].transform = Matrix4x4.TRS(pos, rot, scale);
     }
 }

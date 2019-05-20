@@ -27,7 +27,7 @@ MonoBehaviour:
     m_Value: 1
   multiplier:
     m_OverrideState: 1
-    m_Value: 3.79
+    m_Value: 2
     min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 0
@@ -48,22 +48,22 @@ MonoBehaviour:
     m_Value: 0
   sunSize:
     m_OverrideState: 1
-    m_Value: 0.04
+    m_Value: 0.025
     min: 0
     max: 1
   sunSizeConvergence:
     m_OverrideState: 1
-    m_Value: 5.31
+    m_Value: 5.51
     min: 1
     max: 10
   atmosphereThickness:
     m_OverrideState: 1
-    m_Value: 0.71
+    m_Value: 0.38
     min: 0
     max: 5
   skyTint:
     m_OverrideState: 1
-    m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    m_Value: {r: 0.36320752, g: 1, b: 0.9592953, a: 1}
     hdr: 0
     showAlpha: 1
     showEyeDropper: 1
@@ -75,7 +75,7 @@ MonoBehaviour:
     showEyeDropper: 1
   enableSunDisk:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
 --- !u!114 &-1339933037822070271
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -145,7 +145,7 @@ MonoBehaviour:
     showEyeDropper: 1
   density:
     m_OverrideState: 1
-    m_Value: 0.815
+    m_Value: 0.4
     min: 0
     max: 1
   maxFogDistance:
@@ -167,11 +167,11 @@ MonoBehaviour:
     min: 0
   fogDistance:
     m_OverrideState: 1
-    m_Value: 1238.3
+    m_Value: 300
     min: 0
   fogBaseHeight:
     m_OverrideState: 1
-    m_Value: 3107.3
+    m_Value: 3000
   fogHeightAttenuation:
     m_OverrideState: 1
     m_Value: 0
@@ -196,6 +196,52 @@ MonoBehaviour:
   - {fileID: -436265827924582976}
   - {fileID: 6236299170268013248}
   - {fileID: 3593609674387073240}
+  - {fileID: 643670550770754306}
+--- !u!114 &643670550770754306
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56b145d2b9ee1ac4f846968484e7485a, type: 3}
+  m_Name: ContactShadows
+  m_EditorClassIdentifier: 
+  active: 0
+  m_AdvancedMode: 0
+  enable:
+    m_OverrideState: 1
+    m_Value: 0
+  length:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0
+    max: 1
+  opacity:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  distanceScaleFactor:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  maxDistance:
+    m_OverrideState: 0
+    m_Value: 50
+    min: 0
+  fadeDistance:
+    m_OverrideState: 0
+    m_Value: 5
+    min: 0
+  sampleCount:
+    m_OverrideState: 0
+    m_Value: 8
+    min: 4
+    max: 64
 --- !u!114 &3593609674387073240
 MonoBehaviour:
   m_ObjectHideFlags: 3

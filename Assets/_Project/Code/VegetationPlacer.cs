@@ -42,6 +42,7 @@ public class VegetationPlacer : MonoBehaviour
     public GameObject VegetationPrefab;
     public int Quantity = 1000;
     public bool RemovePerInstanceCulling = false;
+    public bool FrozenStatic = false;
 
     [Header("References")]
     public BoxCollider Bounds;
@@ -51,11 +52,11 @@ public class VegetationPlacer : MonoBehaviour
     private Entity _prefabEntity;
 
     private Transform _spawnRoot;
-    private Transform _tmpTransform;
     private Mesh _finalMesh;
     private Mesh _grassMesh;
     private Material _grassMat;
     private CombineInstance[] _combineInstances;
+    private FrozenRenderSceneTag _frozenTag;
 
     private void Start()
     {
@@ -72,12 +73,22 @@ public class VegetationPlacer : MonoBehaviour
             {
                 _entityManager.RemoveComponent<PerInstanceCullingTag>(_prefabEntity);
             }
+            if(FrozenStatic)
+            {
+                _frozenTag = new FrozenRenderSceneTag()
+                {
+                    SceneGUID = default(Unity.Entities.Hash128),
+                    SectionIndex = 0,
+                    HasStreamedLOD = 0,
+                };
+                _entityManager.AddSharedComponentData<FrozenRenderSceneTag>(_prefabEntity, _frozenTag);
+                _entityManager.AddComponentData<Static>(_prefabEntity, new Static());
+            }
         }
         else if (Method == VegetationSpawnerMethod.MeshCombine)
         {
             _finalMesh = new Mesh();
             _finalMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-            _tmpTransform = new GameObject("TMP").transform;
             _grassMesh = VegetationPrefab.GetComponentInChildren<MeshFilter>().sharedMesh;
             _grassMat = VegetationPrefab.GetComponentInChildren<MeshRenderer>().sharedMaterial;
             _combineInstances = new CombineInstance[Quantity];
@@ -106,7 +117,7 @@ public class VegetationPlacer : MonoBehaviour
                 randomRot = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 360f), Vector3.up) * randomRot;
                 randomRot = Quaternion.FromToRotation(Vector3.up, upDir) * randomRot;
 
-                SpawnOne(i, hit.point, randomRot);
+                SpawnOne(i, hit.point, randomRot, VegetationPrefab.transform.localScale);
             }
         }
 
@@ -123,38 +134,26 @@ public class VegetationPlacer : MonoBehaviour
             mf.sharedMesh = _finalMesh;
             mr.sharedMaterial = _grassMat;
             mr.shadowCastingMode = VegetationPrefab.GetComponentInChildren<MeshRenderer>().shadowCastingMode;
-
-            if (Application.isPlaying)
-            {
-                Destroy(_tmpTransform.gameObject);
-            }
-            else
-            {
-                DestroyImmediate(_tmpTransform.gameObject);
-            }
         }
         else if (Method == VegetationSpawnerMethod.DOTS)
         {
-            EntitySceneOptimization.Optimize(World.Active);
+            //EntitySceneOptimization.Optimize(World.Active);
         }
     }
 
-    public void SpawnOne(int index, Vector3 pos, Quaternion rot)
+    public void SpawnOne(int index, Vector3 pos, Quaternion rot, Vector3 scale)
     {
         if (Method == VegetationSpawnerMethod.DOTS)
         {
             var instance = _entityManager.Instantiate(_prefabEntity);
             _entityManager.SetComponentData(instance, new Translation { Value = pos });
             _entityManager.SetComponentData(instance, new Rotation { Value = rot });
-            //_entityManager.AddComponentData<Static>(instance, new Static());
         }
         else if (Method == VegetationSpawnerMethod.MeshCombine)
         {
-            _tmpTransform.position = pos;
-            _tmpTransform.rotation = rot;
             _combineInstances[index].subMeshIndex = 0;
             _combineInstances[index].mesh = _grassMesh;
-            _combineInstances[index].transform = _tmpTransform.localToWorldMatrix;
+            _combineInstances[index].transform = Matrix4x4.TRS(pos, rot, scale);
         }
         else if (Method == VegetationSpawnerMethod.GameObject)
         {

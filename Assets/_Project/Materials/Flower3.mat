@@ -17,7 +17,8 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -116,9 +117,9 @@ Material:
     m_Floats:
     - Vector1_44FF654C: 0.6
     - Vector1_53CA3FD2: 0.05
-    - Vector1_8268C19F: 0.85
+    - Vector1_8268C19F: 0.86
     - Vector1_C737252C: 1
-    - Vector1_D0D29EE3: 0
+    - Vector1_D0D29EE3: 0.44
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -246,7 +247,7 @@ Material:
     m_Colors:
     - Color_2C85025C: {r: 0.24670699, g: 0.6792453, b: 0.36159998, a: 0}
     - Color_5F61A542: {r: 1, g: 1, b: 1, a: 1}
-    - Vector2_A7826AC7: {r: 8.57, g: 0, b: 0, a: 0}
+    - Vector2_A7826AC7: {r: 8.57, g: 7.77, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
