@@ -24,6 +24,7 @@ public class GrassPatchInstancer : MonoBehaviour
     public float Density = 1;
     public float AreaSize = 1;
     public int PatchResolution = 10;
+    public float CullSize = 0.2f;
 
     public SubScene GrassSubScene;
 
@@ -128,6 +129,16 @@ public class GrassPatchInstancer : MonoBehaviour
         mf.sharedMesh = finalMesh;
         mr.sharedMaterial = grassMat;
         mr.shadowCastingMode = Prefab.GetComponentInChildren<MeshRenderer>().shadowCastingMode;
+
+        // LOD
+        if (CullSize > 0f)
+        {
+            LODGroup patchLOD = patchObject.AddComponent<LODGroup>();
+            LOD[] lods = new LOD[1];
+            lods[0] = new LOD(CullSize, new Renderer[1] { mr });
+            patchLOD.SetLODs(lods);
+            patchLOD.RecalculateBounds();
+        }
 
         // Convert to DOTS
         if (SpawnMode == Mode.DOTS)
