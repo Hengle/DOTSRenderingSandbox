@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.Entities;
-using Unity.Entities.Streaming;
+﻿using Unity.Entities;
 using Unity.Rendering;
 using Unity.Scenes;
 using Unity.Transforms;
@@ -24,9 +21,10 @@ public class GrassPatchInstancer : MonoBehaviour
     [Header("Params")]
     public GameObject Prefab;
     public Mode SpawnMode;
-    public int InstanceResolutionPerPatch = 100;
+    public float Density = 1;
+    public float AreaSize = 1;
     public int PatchResolution = 10;
-    public float PatchSize = 10;
+
     public SubScene GrassSubScene;
 
     private Transform _transform;
@@ -34,7 +32,11 @@ public class GrassPatchInstancer : MonoBehaviour
 
     private void OnValidate()
     {
-        FinalSpawnCount = (InstanceResolutionPerPatch * InstanceResolutionPerPatch) * (PatchResolution * PatchResolution);
+        //FinalSpawnCount = (InstanceResolutionPerPatch * InstanceResolutionPerPatch) * (PatchResolution * PatchResolution);
+
+        float patchSize = AreaSize / (float)PatchResolution;
+        int realAmountPerPatch = (int)Mathf.Pow(Mathf.CeilToInt(Density * patchSize), 2);
+        FinalSpawnCount = (PatchResolution * PatchResolution) * realAmountPerPatch;
     }
 
     void Start()
@@ -58,17 +60,19 @@ public class GrassPatchInstancer : MonoBehaviour
         _transform = this.transform;
         Vector3 highBoundsCenter = _transform.position + (_transform.rotation * Vector3.up * MaxSpawnHeight);
 
-        float totalSize = PatchResolution * PatchSize;
-        Vector3 bottomCorner = Vector3.one * (totalSize * -0.5f);
+        float patchSize = AreaSize / (float)PatchResolution;
+        Vector3 bottomCorner = Vector3.one * (AreaSize * -0.5f);
         bottomCorner.y = 0f;
-        float instanceSpacing = PatchSize / (float)InstanceResolutionPerPatch;
+
+        int instancesSizePerPatch = Mathf.CeilToInt(Density * patchSize);
+        float instanceSpacing = patchSize / (float)instancesSizePerPatch;
 
         // Generate all patches
         for (int patchX = 0; patchX < PatchResolution; patchX++)
         {
             for (int patchY = 0; patchY < PatchResolution; patchY++)
             {
-                GeneratePatch(bottomCorner + new Vector3(patchX * PatchSize, 0f, patchY * PatchSize), highBoundsCenter, instanceSpacing, MaxSpawnHeight * 2f, grassMesh, grassMat, entityManager, frozenTag);
+                GeneratePatch(bottomCorner + new Vector3(patchX * patchSize, 0f, patchY * patchSize), highBoundsCenter, instancesSizePerPatch, instanceSpacing, MaxSpawnHeight * 2f, grassMesh, grassMat, entityManager, frozenTag);
             }
         }
 
@@ -78,17 +82,17 @@ public class GrassPatchInstancer : MonoBehaviour
         }
     }
 
-    public void GeneratePatch(Vector3 start, Vector3 highBoundsCenter, float spacing, float rayDist, Mesh grassMesh, Material grassMat, EntityManager entityManager, FrozenRenderSceneTag frozenTag)
+    public void GeneratePatch(Vector3 start, Vector3 highBoundsCenter, int instancesSizePerPatch, float spacing, float rayDist, Mesh grassMesh, Material grassMat, EntityManager entityManager, FrozenRenderSceneTag frozenTag)
     {
         Mesh finalMesh = new Mesh();
         finalMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        CombineInstance[] _combineInstances = new CombineInstance[InstanceResolutionPerPatch * InstanceResolutionPerPatch];
+        CombineInstance[] _combineInstances = new CombineInstance[instancesSizePerPatch * instancesSizePerPatch];
 
         // Spawn individual grasses
         int counter = 0;
-        for (int x = 0; x < InstanceResolutionPerPatch; x++)
+        for (int x = 0; x < instancesSizePerPatch; x++)
         {
-            for (int y = 0; y < InstanceResolutionPerPatch; y++)
+            for (int y = 0; y < instancesSizePerPatch; y++)
             {
                 Vector3 rayOrigin = start + new Vector3(x * spacing, 0f, y * spacing);
                 rayOrigin = highBoundsCenter + (_transform.rotation * rayOrigin);
